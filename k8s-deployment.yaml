@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: healthsync-daar-deployment
+  labels:
+    app: healthsync-daar-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: healthsync-daar-service
+  template:
+    metadata:
+      labels:
+        app: healthsync-daar-service
+    spec:
+      containers:
+        - name: healthsync-daar-container
+          image: your-dockerhub-username/healthsync-daar-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://<DB_HOST>:3306/<DB_NAME>"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: password
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: healthsync-daar-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: healthsync-daar-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8082
