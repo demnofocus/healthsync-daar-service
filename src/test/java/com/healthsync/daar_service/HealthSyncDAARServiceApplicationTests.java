@@ -1,4 +1,4 @@
-package com.meditrack.healthsync_daar_service;
+package com.healthsync.daar_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
